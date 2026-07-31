@@ -1,0 +1,12 @@
+client
+
+**/node_modules/
+**/dist/
+**/.yarn/
+
+**/.env
+.env
+
+
+
+.vscode

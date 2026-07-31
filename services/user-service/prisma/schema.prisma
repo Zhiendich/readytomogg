@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum Roles {
+  user
+  participant
+  creator
+  admin
+}
+
+model User {
+  id        String  @id @default(uuid())
+  email     String   @unique
+  surname   String
+  name      String
+  password  String
+  phone     String?
+  isTwoFactorEnabled     Boolean  @default(false)
+  isOtpVerified Boolean  @default(false)
+  isEmailVerified Boolean @default(false)
+  isPhoneVerified Boolean @default(false)
+  roles     Roles[]   @default([user]) 
+}
+

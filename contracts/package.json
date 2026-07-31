@@ -1,0 +1,32 @@
+{
+  "name": "@readytomog/contracts",
+  "version": "1.8.1",
+  "description": "Protobuf definitions and generated Typescript types",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "generate": "protoc -I ./proto ./proto/*.proto --ts_proto_out=./src/gen --ts_proto_opt=useDate=true,nestJs=true,package=omit,exportCommonSymbols=false",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "files": [
+    "proto",
+    "gen",
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "https://github.com/Zhiendich",
+  "license": "ISC",
+  "dependencies": {
+    "@nestjs/microservices": "^11.1.27",
+    "@readytomog/contracts": "^1.5.6",
+    "rxjs": "^7.8.2",
+    "ts-proto": "^2.11.8"
+  },
+  "packageManager": "yarn@1.22.22",
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "typescript": "^6.0.3"
+  }
+}

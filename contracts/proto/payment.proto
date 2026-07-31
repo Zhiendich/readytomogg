@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package payment.v1;
+
+import "google/protobuf/empty.proto";
+
+service PaymentService {
+    rpc GetHistory(google.protobuf.Empty) returns (GetHistoryResponse);
+    rpc InitSubscriptionTransaction(InitSubscriptionTransactionRequest) returns (InitSubscriptionTransactionResponse);
+    rpc InitTransaction(InitTransactionRequest) returns (InitTransactionResponse);
+    rpc UpdateAutoRenewalStatus(UpdateAutoRenewalStatusRequest) returns (UpdateAutoRenewalStatusResponse);
+    rpc GetPlans(google.protobuf.Empty) returns (GetPlansResponse);
+    rpc GetPlanById(GetPlanByIdRequest) returns (GetPlanByIdResponse);
+    rpc Refund(RefundRequest) returns (RefundResponse);
+}
+
+
+
+message Transaction {
+ string  id = 1;
+ string status =2 ;
+ string  paymentProvider = 3;
+ string  createdAt = 4;
+ string updatedAt  = 5;
+ optional string  billingPeriod = 6;
+ int32 amount = 7;
+ string  userId = 8;
+ optional string planId = 9;
+ optional string subscriptionId = 10;
+ string  transactionType = 11;
+ optional string orderId = 12;
+ optional string externalId = 13;
+}
+
+message  GetHistoryResponse {
+  repeated Transaction transactions = 1;
+}
+
+message InitSubscriptionTransactionRequest {
+ string planId = 1;
+ string billingPeriod = 2;
+ string provider = 3; 
+}
+
+message  InitSubscriptionTransactionResponse {
+  string cancel_url = 1;
+  string success_url = 2;
+  string url = 3;
+}
+
+message ProductItem {
+  string product_id = 1;
+  int32 quantity = 2;
+}
+
+message InitTransactionRequest {
+ repeated ProductItem products = 1;
+  string provider = 2; 
+}
+
+message InitTransactionResponse {
+  string cancel_url = 1;
+  string success_url = 2;
+  string url = 3;
+}
+
+message UpdateAutoRenewalStatusRequest {
+  bool isAutoRenewal = 1;
+}
+
+message  UpdateAutoRenewalStatusResponse {
+    bool isAutoRenewal = 1;
+}
+
+message Plan {
+        string id  = 1;
+        string title = 2;
+        string description = 3;
+        int32 monthlyPrice = 4;
+        int32 annualyPrice = 5;
+}
+
+
+message GetPlansResponse {
+     repeated Plan plans =1;
+}
+
+message GetPlanByIdRequest {
+    string planId = 1;
+}
+message GetPlanByIdResponse{
+    Plan plan = 1;
+}
+
+message OrderItem {
+ string orderItemId = 1; 
+ int32 quantity = 2;
+}
+
+message RefundRequest {
+ repeated OrderItem orders = 1;
+}
+
+message RefundResponse {
+  string message = 1;
+}

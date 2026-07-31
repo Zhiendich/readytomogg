@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package chat.v1;
+
+
+
+service ChatService {
+    rpc CreateChat(CreateChatRequest) returns (CreateChatResponse);
+    rpc DeleteChat(DeleteChatRequest) returns (DeleteChatResponse);
+    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+    rpc GetChats(GetChatsRequest) returns (GetChatsResponse);
+}
+
+message CreateChatRequest {
+    string participant = 1;
+
+}
+message CreateChatResponse {
+    string id  = 1;
+    repeated User users = 2;
+}
+
+message DeleteChatRequest {
+    string chatId = 1;
+}
+
+message DeleteChatResponse {
+    string message = 1;
+}
+
+message Message {
+    string message = 1;
+    string senderId = 2;
+    string id = 4;
+    string created_at = 5;
+    string updated_at = 6;
+    string  chatId = 7;
+}
+
+message User {
+    string  id  = 1;
+    string name = 2;
+    string surname =3;
+    string avatar =4;
+}
+
+message Chat {
+    string  id  = 1;
+    repeated User users = 2;
+    string lastMessage = 3;
+    string created_at = 5;
+    string updated_at = 6;
+}
+
+message GetMessagesRequest {
+    string chatId = 1;
+}
+
+message GetMessagesResponse {
+  repeated Message messages = 1;
+}
+
+message GetChatsRequest {
+    string userId = 1;
+}
+
+message GetChatsResponse {
+  repeated Chat chats = 1;
+}

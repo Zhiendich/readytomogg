@@ -1,0 +1,29 @@
+{
+  "name": "@readytomog/core",
+  "version": "1.2.4",
+  "description": "Core utilities and shared setup",
+  "author": "https://github.com/Zhiendich",
+  "license": "ISC",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.18.0",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^17.0.0",
+    "typescript-eslint": "^8.20.0"
+  },
+  "peerDependencies": {
+    "eslint": "^9.18.0",
+    "prettier": "^3.8.4"
+  },
+  "exports": {
+    "./prettier": "./src/prettier.config.mjs",
+    "./eslint": "./src/eslint.config.mjs",
+    "./tsconfig": "./src/tsconfig.base.json"
+  }
+}

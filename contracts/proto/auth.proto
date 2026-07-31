@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "google/protobuf/empty.proto";
+
+service AuthService {
+    rpc Login (LoginRequest) returns (LoginResponse);
+    rpc Registration (RegistrationRequest) returns (RegistrationResponse);
+    rpc Logout (google.protobuf.Empty) returns (LogoutResponse);
+    rpc RefreshAuth (google.protobuf.Empty) returns (RefreshAuthResponse);
+    rpc GenerateSecret (google.protobuf.Empty) returns (GenerateSecretResponse);
+    rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse);
+    rpc DisableTwoFactor(google.protobuf.Empty) returns (DisableTwoFactorResponse);
+    rpc SendOtp(SendOtpRequest) returns (SendOtpRespose);
+    rpc VerifyOtp(VerifyOtpRequest) returns (VerifyOtpResponse);
+};
+
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string accessToken = 1;
+    string refreshToken = 2;
+}
+
+message RegistrationRequest {
+    string email = 1;
+    string name = 2;
+    string surname = 3;
+    string password = 4;
+}
+
+message RegistrationResponse {
+    string message = 1;
+}
+
+
+message LogoutResponse {
+        bool ok = 1;
+}
+
+
+message RefreshAuthResponse {
+        string accessToken = 1;
+        string refreshToken = 2;
+}
+
+message GenerateSecretResponse {
+    string qrCode = 1;
+}
+
+message VerifyTokenRequest {
+    string token = 1;
+}
+
+message VerifyTokenResponse {
+    bool verify = 1;
+}
+
+message DisableTwoFactorResponse {
+    bool disable = 1;
+}
+
+message SendOtpRequest {
+    string identifier  = 1;
+}
+
+message SendOtpRespose {
+    bool ok = 1;
+}
+
+message VerifyOtpRequest {
+     string identifier  = 1;
+     int32 otp = 2;
+}
+message VerifyOtpResponse {
+        bool verify = 1;
+}

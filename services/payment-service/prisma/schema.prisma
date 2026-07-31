@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PaymentProvider {
+  stripe
+  liqpay 
+}
+
+enum TransactionStatus {
+   success
+   failed
+   processing
+   pending
+   refunded
+}
+
+enum SubscriptionStatus {
+  pending
+  cancelled
+  active
+  paused
+  expired
+}
+
+enum BillingPeriod {
+  monthly
+  annualy
+}
+
+
+
+enum TransactionType {
+  subscription
+  order
+}
+
+
+model User {
+  id String @id @default(uuid())
+  email String 
+  customerId String? 
+  stripeCustomerId String?
+  isAutoRenewal Boolean @default(true)
+  subscription UserSubscription?
+  transactions Transactions[]
+}
+
+
+model Transactions {
+  id String @id @default(uuid())
+  status TransactionStatus @default(pending)
+  paymentProvider PaymentProvider 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+  billingPeriod BillingPeriod?
+  amount Decimal
+  userId String 
+  planId String?
+  externalId String? @unique
+  subscriptionId String?
+  orderId String?
+
+  transactionType TransactionType
+  subscription UserSubscription? @relation(fields: [subscriptionId], references: [id])
+  user  User @relation(fields: [userId], references: [id])
+  plan Plans? @relation(fields: [planId], references: [id])
+}
+
+model Plans {
+  id String @id @default(uuid())
+  title String
+  description String
+  monthlyPrice Decimal
+  provider PlanProvider[]
+  annualyPrice Decimal
+  subscription UserSubscription[]
+  transactions Transactions[]
+}
+
+model UserSubscription {
+  id String @id @default(uuid())
+  userId String @unique
+  planId String
+  provider PaymentProvider
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd DateTime
+  status SubscriptionStatus
+  createdAt DateTime @default(now())
+  billingPeriod BillingPeriod
+  updatedAt DateTime @updatedAt()
+  stripeSubscriptionId String?
+  transactionId String?
+  transaction Transactions[] 
+  user User @relation(fields: [userId], references: [id])
+  plan Plans @relation(fields : [planId], references: [id])
+}
+
+model PlanProvider {
+  id String @id @default(uuid())
+  provider PaymentProvider
+  planId String
+  externalPriceId String?
+  billingPeriod BillingPeriod
+  plan Plans @relation(fields: [planId], references: [id])
+}
+
+

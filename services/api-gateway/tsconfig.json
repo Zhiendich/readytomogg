@@ -1,0 +1,10 @@
+{
+  "extends": "@readytomog/core/tsconfig",
+
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "."
+  },
+
+  "include": ["src"]
+}
