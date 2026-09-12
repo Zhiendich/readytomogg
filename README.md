@@ -457,42 +457,6 @@ The packages are published as separate NPM packages and consumed by the microser
 * `@readytomog/common`
 * `@readytomog/contracts`
 
----
-
-## Project Structure
-
-```text
-readytomog/
-│
-├── apps/
-│   ├── api-gateway/
-│   ├── auth/
-│   ├── user/
-│   ├── chat/
-│   ├── notification/
-│   └── payment/
-│
-├── packages/
-│   ├── core/
-│   ├── common/
-│   └── contracts/
-│
-├── infrastructure/
-│   ├── prometheus/
-│   ├── grafana/
-│   ├── loki/
-│   ├── jaeger/
-│   ├── alertmanager/
-│   └── ...
-│
-├── docker-compose.yml
-├── package.json
-└── README.md
-```
-
-> The exact directory structure may differ depending on the current repository layout.
-
----
 
 ## Running Locally
 
@@ -538,20 +502,6 @@ Check running containers:
 ```bash
 docker compose ps
 ```
-
----
-
-### Start the application
-
-Run the required services using the project's available npm scripts.
-
-For example:
-
-```bash
-npm run start:dev
-```
-
-or start individual services separately depending on the project configuration.
 
 ---
 
@@ -602,6 +552,9 @@ The project demonstrates several patterns commonly used in distributed backend s
 * WebSocket-based real-time communication
 * Relational and NoSQL databases
 * Distributed caching
+* Idempotent payment operations
+* Race condition prevention
+* Distributed locking
 * Centralized logging
 * Metrics collection
 * Distributed tracing
