@@ -61,6 +61,7 @@ Responsibilities:
 * HTTP API
 * WebSocket connections
 * Request routing
+* Rate limiting
 * Communication with internal microservices
 * Authentication integration
 * API-level validation
@@ -109,11 +110,10 @@ Responsibilities:
 * Chat-related business logic
 * Real-time events
 
-**Database:** MongoDB
+**Database:** PostgreSQL
 
 **Additional infrastructure:**
 
-* Redis
 * RabbitMQ
 * WebSockets
 
@@ -213,18 +213,9 @@ This makes it possible to run the complete distributed system locally without in
 ### PostgreSQL
 
 Used for relational and transactional data.
-
-Currently used by:
-
-* User Service
-* Payment Service
-
 ---
 
 ### MongoDB
-
-Used by the Chat Service for message and chat-related data.
-
 ---
 
 ### Redis
@@ -236,6 +227,8 @@ Potential use cases within the system include:
 * caching
 * temporary data
 * distributed state
+* rate limiting
+* race condition
 * real-time application support
 
 ---
@@ -484,7 +477,7 @@ cd readytomog
 ### Install dependencies
 
 ```bash
-npm install
+yarn add
 ```
 
 ---
