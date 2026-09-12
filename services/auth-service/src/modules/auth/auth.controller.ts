@@ -1,3 +1,6 @@
+import { Controller } from '@nestjs/common';
+import { GrpcMethod } from '@nestjs/microservices';
+import { CurrentGrpcUser, type JwtPayload } from '@readytomog/common';
 import type {
   LoginRequest,
   LoginResponse,
@@ -6,11 +9,8 @@ import type {
   RegistrationRequest,
   RegistrationResponse,
 } from '@readytomog/contracts';
-import { Controller } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { GrpcMethod } from '@nestjs/microservices';
 
-import { CurrentGrpcUser, type JwtPayload } from '@readytomog/common';
+import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
@@ -22,21 +22,15 @@ export class AuthController {
     return { accessToken, refreshToken };
   }
   @GrpcMethod('AuthService', 'Registration')
-  public async registration(
-    dto: RegistrationRequest,
-  ): Promise<RegistrationResponse> {
+  public async registration(dto: RegistrationRequest): Promise<RegistrationResponse> {
     return await this.authService.registration(dto);
   }
   @GrpcMethod('AuthService', 'Logout')
-  public async logout(
-    @CurrentGrpcUser() user: JwtPayload,
-  ): Promise<LogoutResponse> {
+  public async logout(@CurrentGrpcUser() user: JwtPayload): Promise<LogoutResponse> {
     return await this.authService.logout({ userId: user.id });
   }
   @GrpcMethod('AuthService', 'RefreshAuth')
-  public async refreshAuth(
-    @CurrentGrpcUser() user: JwtPayload,
-  ): Promise<RefreshAuthResponse> {
+  public async refreshAuth(@CurrentGrpcUser() user: JwtPayload): Promise<RefreshAuthResponse> {
     return await this.authService.refreshAuth({ userId: user.id });
   }
 }

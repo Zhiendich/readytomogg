@@ -1,0 +1,165 @@
+groups:
+  - name: databases
+    rules:
+      # =========================
+      # POSTGRES DOWN
+      # =========================
+
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL exporter cannot connect to PostgreSQL."
+
+      # =========================
+      # POSTGRES CONNECTIONS
+      # =========================
+
+      - alert: PostgreSQLConnectionsHigh
+        expr: |
+          (
+            sum(pg_stat_database_numbackends)
+            /
+            pg_settings_max_connections
+          ) > 0.80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL connections are high"
+          description: "PostgreSQL is using more than 80% of available connections."
+
+      - alert: PostgreSQLConnectionsCritical
+        expr: |
+          (
+            sum(pg_stat_database_numbackends)
+            /
+            pg_settings_max_connections
+          ) > 0.90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL connections are critically high"
+          description: "PostgreSQL is using more than 90% of available connections."
+
+      # =========================
+      # REDIS DOWN
+      # =========================
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis exporter cannot connect to Redis."
+
+      # =========================
+      # REDIS MEMORY
+      # =========================
+
+      - alert: RedisMemoryHigh
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.80
+          and
+          redis_memory_max_bytes > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using more than 80% of configured maxmemory."
+
+      - alert: RedisMemoryCritical
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.90
+          and
+          redis_memory_max_bytes > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis memory usage is critical"
+          description: "Redis is using more than 90% of configured maxmemory."
+
+      # =========================
+      # MONGODB DOWN
+      # =========================
+
+      - alert: MongoDBDown
+        expr: mongodb_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB is down"
+          description: "MongoDB exporter cannot connect to MongoDB."
+
+      # =========================
+      # MONGODB REPLICA MEMBER DOWN
+      # =========================
+
+      - alert: MongoDBReplicaMemberDown
+        expr: |
+          mongodb_members_uptime == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB replica member is down"
+          description: "A MongoDB replica set member has been down for more than 1 minute."
+
+      # =========================
+      # MONGODB REPLICATION PING
+      # =========================
+
+      - alert: MongoDBReplicationLatencyHigh
+        expr: |
+          mongodb_rs_members_pingMs > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MongoDB replication latency is high"
+          description: "MongoDB replica member ping latency is above 100ms for more than 5 minutes."
+
+      - alert: MongoDBReplicationLatencyCritical
+        expr: |
+          mongodb_rs_members_pingMs > 500
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB replication latency is critical"
+          description: "MongoDB replica member ping latency is above 500ms."
+
+      # =========================
+      # MONGODB OPLOG
+      # =========================
+
+      - alert: MongoDBReplicationLag
+        expr: |
+          (
+            mongodb_mongod_replset_oplog_head_timestamp
+            -
+            mongodb_mongod_replset_oplog_head_timestamp
+          ) > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MongoDB replication lag is high"
+          description: "MongoDB replication lag is above 60 seconds."

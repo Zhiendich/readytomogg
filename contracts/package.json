@@ -1,6 +1,6 @@
 {
   "name": "@readytomog/contracts",
-  "version": "1.8.1",
+  "version": "1.8.4",
   "description": "Protobuf definitions and generated Typescript types",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,12 +20,11 @@
   "license": "ISC",
   "dependencies": {
     "@nestjs/microservices": "^11.1.27",
-    "@readytomog/contracts": "^1.5.6",
-    "rxjs": "^7.8.2",
-    "ts-proto": "^2.11.8"
+    "rxjs": "^7.8.2"
   },
   "packageManager": "yarn@1.22.22",
   "devDependencies": {
+    "ts-proto": "^2.11.8",
     "@types/node": "^26.0.0",
     "typescript": "^6.0.3"
   }

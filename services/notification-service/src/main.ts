@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
 import { createRmqConsumer } from './infrastructure/rmq/consumer/rmq.consumer';
+import './observability/tracing';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,6 +13,6 @@ async function bootstrap() {
   createRmqConsumer(app, config);
 
   await app.startAllMicroservices();
-  await app.init();
+  await app.listen(9105);
 }
 bootstrap();

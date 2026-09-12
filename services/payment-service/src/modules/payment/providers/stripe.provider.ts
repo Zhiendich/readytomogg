@@ -18,7 +18,7 @@ export class StripeProvider {
     const stripe_key = this.configService.get('providers.stripe_key', { infer: true });
     this.stripe = new Stripe(stripe_key, {
       typescript: true,
-      apiVersion: '2026-06-24.dahlia',
+      apiVersion: '2026-07-29.dahlia',
     });
   }
 

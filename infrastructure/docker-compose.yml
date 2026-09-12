@@ -1,0 +1,443 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: readytomog-postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 5433:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - readytomog-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  mongodb:
+    image: mongo:6
+    container_name: readytomog_mongo_db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - readytomog-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "--username",
+          "${MONGO_INITDB_ROOT_USERNAME}",
+          "--password",
+          "${MONGO_INITDB_ROOT_PASSWORD}",
+          "--eval",
+          "db.adminCommand('ping').ok",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: readytomog-rabbitmq
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-user}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-password}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - readytomog-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  redis:
+    container_name: readytomog-redis
+    image: redis:6.2
+    restart: always
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+    networks:
+      - readytomog-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  mongo-exporter:
+    container_name: mongodb-exporter
+    image: percona/mongodb_exporter:0.47
+    restart: always
+    command:
+      - "--mongodb.uri=${MONGODB_EXPORTER_URI}"
+      - "--collect-all"
+    ports:
+      - 9216:9216
+    networks:
+      - readytomog-network
+    depends_on:
+      - mongodb
+  postgres-exporter:
+    container_name: postgres-exporter
+    image: prometheuscommunity/postgres-exporter
+    restart: always
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 9187:9187
+    networks:
+      - readytomog-network
+    depends_on:
+      - postgres
+
+  redis-exporter:
+    container_name: redis-exporter
+    image: oliver006/redis_exporter
+    restart: always
+    command: -redis.addr=redis://:${REDIS_PASSWORD}@redis:6379
+    ports:
+      - 9121:9121
+    networks:
+      - readytomog-network
+    depends_on:
+      - redis
+
+  rabbitmq-exporter:
+    container_name: rabbitmq-exporter
+    image: kbudde/rabbitmq-exporter
+    restart: always
+    environment:
+      RABBIT_URL: http://readytomog-rabbitmq:15672
+      RABBIT_USER: ${RABBIT_USER}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD}
+    ports:
+      - 9419:9419
+    networks:
+      - readytomog-network
+    depends_on:
+      - rabbitmq
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    restart: always
+    ports:
+      - 9100:9100
+    networks:
+      - readytomog-network
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts:/etc/prometheus/alerts
+    ports:
+      - 9090:9090
+    networks:
+      - readytomog-network
+
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:latest
+    restart: unless-stopped
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+    ports:
+      - "9093:9093"
+    networks:
+      - readytomog-network
+
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:1.47
+    restart: unless-stopped
+    ports:
+      - 16686:16686
+      - 4317:4317
+      - 4318:4318
+    networks:
+      - readytomog-network
+
+  loki:
+    container_name: loki
+    restart: unless-stopped
+    image: grafana/loki:2.9.1
+    volumes:
+      - ./loki-config.yml:/etc/loki/config.yaml
+      - ./loki-data:/loki
+      - ./loki-wal:/wal
+    command: -config.file=/etc/loki/config.yaml
+    ports:
+      - 3100:3100
+    networks:
+      - readytomog-network
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:2.9.1
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml
+      - ../logs:/var/log/services
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - readytomog-network
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:10.2.3
+    restart: unless-stopped
+    ports:
+      - 3002:3000
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - readytomog-network
+
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "${HTTP_PORT}:4000"
+    env_file:
+      # - ../services/api-gateway/.env.dev
+      - ../services/api-gateway/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - readytomog-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ..
+      dockerfile: services/auth-service/Dockerfile
+    container_name: auth-service
+    ports:
+      - "9101:9101"
+    volumes:
+      - ../logs:/var/log/services
+    env_file:
+      # - ../services/auth-service/.env.dev
+      - ../services/auth-service/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - readytomog-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9101/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: ..
+      dockerfile: services/user-service/Dockerfile
+    container_name: user-service
+    ports:
+      - "9102:9102"
+    volumes:
+      - ../logs:/var/log/services
+    env_file:
+      # - ../services/user-service/.env.dev
+      - ../services/user-service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - readytomog-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9102/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  chat-service:
+    build:
+      context: ..
+      dockerfile: services/chat-service/Dockerfile
+    container_name: chat-service
+    ports:
+      - "9103:9103"
+    volumes:
+      - ../logs:/var/log/services
+    env_file:
+      # - ../services/chat-service/.env.dev
+      - ../services/chat-service/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - readytomog-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9103/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  payment-service:
+    build:
+      context: ..
+      dockerfile: services/payment-service/Dockerfile
+    container_name: payment-service
+    ports:
+      - "9104:9104"
+    volumes:
+      - ../logs:/var/log/services
+    env_file:
+      # - ../services/payment-service/.env.dev
+      - ../services/payment-service/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - readytomog-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9104/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ..
+      dockerfile: services/notification-service/Dockerfile
+    container_name: notification-service
+    ports:
+      - "9105:9105"
+    env_file:
+      - ../services/notification-service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - readytomog-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mongo_data:
+  rabbitmq_data:
+  redis_data:
+  grafana-storage:
+
+networks:
+  readytomog-network:
+    driver: bridge

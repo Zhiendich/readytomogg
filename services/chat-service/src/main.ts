@@ -12,7 +12,7 @@ async function bootstrap() {
   createGrpcServer(app, config);
   createRmqConsumer(app, config);
 
-  await app.init();
   await app.startAllMicroservices();
+  await app.listen(9103);
 }
 bootstrap();

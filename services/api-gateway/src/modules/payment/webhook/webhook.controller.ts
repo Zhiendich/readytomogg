@@ -21,7 +21,6 @@ export class WebhookController {
   @Post('stripe')
   public async handlerStripeWebhook(@Req() req: Request & { rawBody: Buffer }) {
     const stripeToken = req.headers['stripe-signature'] || '';
-
     const event = await this.stripeProvider.checkStripeEvent(req.rawBody, stripeToken);
 
     if (!event) return { ok: false };

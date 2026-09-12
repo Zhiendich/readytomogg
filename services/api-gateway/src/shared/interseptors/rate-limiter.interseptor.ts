@@ -21,8 +21,7 @@ export class RateLimiterInterceptor implements NestInterceptor {
     const rateLimitOff = this.reflector.get('rateLimitOff', context.getHandler());
 
     if (rateLimitOff) {
-      next.handle();
-      return;
+      return next.handle();
     }
     const { route, method, ip } = context.switchToHttp().getRequest();
 

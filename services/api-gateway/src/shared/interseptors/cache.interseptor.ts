@@ -23,7 +23,7 @@ export class CacheInterseptor implements NestInterceptor {
       key += `:${JSON.stringify(body)}`;
     }
 
-    console.log('KEY', key);
+    
 
     return from(this.cacheService.get(key)).pipe(
       switchMap((cached) => {

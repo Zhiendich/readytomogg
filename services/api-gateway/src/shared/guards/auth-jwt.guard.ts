@@ -18,11 +18,13 @@ export class AuthJwtGuard extends AuthGuard('jwt') implements CanActivate {
     super();
   }
   async canActivate(context: ExecutionContext) {
+    const request: Request = context.switchToHttp().getRequest();
     const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
-    if (isPublic) {
+
+    if (isPublic || request.path === '/metrics') {
       return true;
     }
-    const request: Request = context.switchToHttp().getRequest();
+
     const token = request.headers.authorization?.split(' ')[1];
 
     if (!token) {

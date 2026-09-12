@@ -1,0 +1,100 @@
+groups:
+  - name: infrastructure
+    rules:
+      - alert: HighCPUUsage
+        expr: |
+          100 -
+          (
+            avg by (instance) (
+              rate(node_cpu_seconds_total{mode="idle"}[5m])
+            ) * 100
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage on {{ $labels.instance }} is above 80% for more than 10 minutes."
+
+      - alert: CriticalCPUUsage
+        expr: |
+          100 -
+          (
+            avg by (instance) (
+              rate(node_cpu_seconds_total{mode="idle"}[5m])
+            ) * 100
+          ) > 95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage on {{ $labels.instance }} is above 95%."
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            1 -
+            (
+              node_memory_MemAvailable_bytes
+              /
+              node_memory_MemTotal_bytes
+            )
+          ) > 0.80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage on {{ $labels.instance }} is above 80%."
+
+      - alert: CriticalMemoryUsage
+        expr: |
+          (
+            1 -
+            (
+              node_memory_MemAvailable_bytes
+              /
+              node_memory_MemTotal_bytes
+            )
+          ) > 0.90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage on {{ $labels.instance }} is above 90%."
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            node_filesystem_avail_bytes{
+              fstype!~"tmpfs|overlay|squashfs"
+            }
+            /
+            node_filesystem_size_bytes{
+              fstype!~"tmpfs|overlay|squashfs"
+            }
+          ) < 0.20
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Less than 20% disk space remains on {{ $labels.instance }}."
+
+      - alert: DiskSpaceCritical
+        expr: |
+          (
+            node_filesystem_avail_bytes{
+              fstype!~"tmpfs|overlay|squashfs"
+            }
+            /
+            node_filesystem_size_bytes{
+              fstype!~"tmpfs|overlay|squashfs"
+            }
+          ) < 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical disk space"
+          description: "Less than 10% disk space remains on {{ $labels.instance }}."

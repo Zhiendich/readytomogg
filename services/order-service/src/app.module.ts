@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { AppContoller } from './app.contoller';
 import { grpcEnv, prismaEnv } from './config';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { RepositoryModule } from './infrastructure/prisma/repositories/modules/repository.module';
@@ -16,7 +15,6 @@ import { RepositoryModule } from './infrastructure/prisma/repositories/modules/r
     PrismaModule,
     RepositoryModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppContoller],
 })
 export class AppModule {}

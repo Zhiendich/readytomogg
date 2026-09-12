@@ -1,18 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { RpcStatus, JwtPayload, validateEnumValues } from '@readytomog/common';
-
+import { JwtPayload, RpcStatus, validateEnumValues } from '@readytomog/common';
+import { LoginRequest, RegistrationRequest, Roles } from '@readytomog/contracts';
 import * as bcrypt from 'bcrypt';
-import { JwtService } from '../jwt/jwt.service';
-
-import {
-  Roles,
-  LoginRequest,
-  RegistrationRequest,
-} from '@readytomog/contracts';
-import { ProducerService } from 'src/infrastructure/rmq/producer/producer.service';
-import { UserRepository } from 'src/infrastructure/mongo/repositories/user.repository';
+import { PinoLogger } from 'nestjs-pino';
 import { JwtRepository } from 'src/infrastructure/mongo/repositories/jwt.repository';
+import { UserRepository } from 'src/infrastructure/mongo/repositories/user.repository';
+import { ProducerService } from 'src/infrastructure/rmq/producer/producer.service';
+
+import { JwtService } from '../jwt/jwt.service';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +17,10 @@ export class AuthService {
     private readonly jwtRepository: JwtRepository,
     private readonly jwtService: JwtService,
     private readonly producerService: ProducerService,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(AuthService.name);
+  }
   public async login(dto: LoginRequest) {
     const { email, password } = dto;
     const findUser = await this.userRepository.findUserByEmail(email);
@@ -36,6 +35,8 @@ export class AuthService {
         code: RpcStatus.INVALID_ARGUMENT,
         details: 'Incorrect password',
       });
+
+    this.logger.info({ user: findUser }, 'Login user');
 
     const payload: JwtPayload = {
       id: findUser.id,
@@ -96,8 +97,7 @@ export class AuthService {
       roles: validateEnumValues(Roles, user.roles),
     };
 
-    const { accessToken, refreshToken } =
-      await this.jwtService.generateTokens(payload);
+    const { accessToken, refreshToken } = await this.jwtService.generateTokens(payload);
 
     await this.jwtRepository.saveRefreshTokenToDb(refreshToken, userId);
 

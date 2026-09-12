@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { JwtService as JwtProvider } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtService as JwtProvider } from '@nestjs/jwt';
 import { JwtPayload } from '@readytomog/common';
 import { JwtRepository } from 'src/infrastructure/mongo/repositories/jwt.repository';
 

@@ -15,15 +15,16 @@ export class HttpMetricsInterceptor implements NestInterceptor {
     this.SERVICE_NAME = 'api-gateway';
   }
   intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> {
-    const { method, route } = context.switchToHttp().getRequest<Request>();
+    const req = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
-
+    const method = req.method;
+    const route = req.route.path;
     this.gauge.inc({ service: this.SERVICE_NAME });
 
     const endTimer = this.histogram.startTimer();
 
     return next.handle().pipe(
-      finalize(() => {
+      finalize(async () => {
         const status = response.statusCode.toString();
 
         this.counter.inc({

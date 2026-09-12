@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { RpcStatus } from '@readytomog/common';
+import { PinoLogger } from 'nestjs-pino';
 import { randomInt } from 'node:crypto';
 import { UserRepository } from 'src/infrastructure/mongo/repositories/user.repository';
-
 import { CacheService } from 'src/infrastructure/redis/redis.service';
 import { ProducerService } from 'src/infrastructure/rmq/producer/producer.service';
 
@@ -15,17 +15,15 @@ export class OtpService {
     private readonly cacheService: CacheService,
     private readonly producerService: ProducerService,
     private readonly userRepository: UserRepository,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(OtpService.name);
+  }
 
   private async generateOtp(userId: string) {
     const otp = randomInt(100000, 1000000);
-    await this.cacheService.set(
-      `otp:${userId}`,
-      otp,
-      'EX',
-      this.LOCKOUT_SECONDS,
-    );
-
+    await this.cacheService.set(`otp:${userId}`, otp, 'EX', this.LOCKOUT_SECONDS);
+    this.logger.debug(`Generated otp ${otp}`);
     return otp;
   }
   public async verifyOtp(otp: number, userId: string, identifire: string) {
@@ -34,6 +32,7 @@ export class OtpService {
     const otpRedis = await this.cacheService.get(`otp:${userId}`);
 
     if (!otpRedis || otp !== +otpRedis) {
+      this.logger.warn(`Failed attemp otp ${otp}`);
       await this.registerFailedAttempt(userId);
     }
 
@@ -101,12 +100,7 @@ export class OtpService {
     await this.cacheService.expire(key, this.LOCKOUT_SECONDS);
 
     if (+attemps >= this.MAX_ATTEMPTS) {
-      await this.cacheService.set(
-        `otp:lockout:${userId}`,
-        '1',
-        'EX',
-        this.LOCKOUT_SECONDS,
-      );
+      await this.cacheService.set(`otp:lockout:${userId}`, '1', 'EX', this.LOCKOUT_SECONDS);
     }
 
     throw new RpcException({

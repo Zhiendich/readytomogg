@@ -32,7 +32,6 @@ export class UserController {
   @EventPattern(EVENT_CONSTANTS.createUser)
   public async createUser(@Payload() payload: CreateUserEvent, @Ctx() ctx: RmqContext) {
     try {
-      console.log('PAYLOAD', payload);
       await this.userRepository.createUser({
         ...payload,
       });

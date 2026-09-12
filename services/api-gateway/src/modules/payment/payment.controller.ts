@@ -14,7 +14,6 @@ import { PaymentGrpcClient } from './payment.grpc';
 export class PaymentController {
   constructor(private readonly client: PaymentGrpcClient) {}
 
-  @UseInterceptors(CacheInterseptor)
   @Get('history')
   public async getTransactionHistory(@Req() req: Request) {
     return await this.client.call('getHistory', {}, req.metadata);

@@ -1,17 +1,14 @@
 import { Controller, UseInterceptors } from '@nestjs/common';
-import { OtpService } from './otp.service';
-import {
-  CurrentGrpcUser,
-  SetGrpcMetadata,
-  type JwtPayload,
-} from '@readytomog/common';
-import { Payload, GrpcMethod } from '@nestjs/microservices';
+import { GrpcMethod, Payload } from '@nestjs/microservices';
+import { CurrentGrpcUser, type JwtPayload, SetGrpcMetadata } from '@readytomog/common';
 import type {
   SendOtpRequest,
   SendOtpRespose,
   VerifyOtpRequest,
   VerifyOtpResponse,
 } from '@readytomog/contracts';
+
+import { OtpService } from './otp.service';
 
 @UseInterceptors(SetGrpcMetadata)
 @Controller('otp')
@@ -30,10 +27,6 @@ export class OtpController {
     @Payload() payload: VerifyOtpRequest,
     @CurrentGrpcUser() user: JwtPayload,
   ): Promise<VerifyOtpResponse> {
-    return await this.otpService.verifyOtp(
-      payload.otp,
-      user.id,
-      payload.identifier,
-    );
+    return await this.otpService.verifyOtp(payload.otp, user.id, payload.identifier);
   }
 }

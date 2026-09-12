@@ -7,6 +7,12 @@ client
 **/.env
 .env
 
+**/.env.dev
+.env.dev
+
+logs
 
 
 .vscode
+
+infrastructure/alertmanager/alertmanager.yml

@@ -1,7 +1,8 @@
 import { Global, Module } from '@nestjs/common';
-import { ProducerService } from './producer.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+
+import { ProducerService } from './producer.service';
 
 @Global()
 @Module({

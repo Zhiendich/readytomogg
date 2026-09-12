@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
 import { createRmqConsumer } from './infrastructure/rmq/consumer/rmq.consumer';
+import './observability/tracing';
 import { GrpcExceptionFilter } from './shared/filters/grpc-exception.filter';
 
 const setUpSwagger = (app: INestApplication<any>) => {

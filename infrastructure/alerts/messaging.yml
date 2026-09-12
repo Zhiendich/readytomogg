@@ -1,0 +1,43 @@
+groups:
+  - name: messaging
+    rules:
+      # =========================
+      # RABBITMQ DOWN
+      # =========================
+
+      - alert: RabbitMQDown
+        expr: rabbitmq_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RabbitMQ is down"
+          description: "RabbitMQ exporter cannot collect metrics from RabbitMQ."
+
+      # =========================
+      # QUEUE TOO LARGE
+      # =========================
+
+      - alert: RabbitMQQueueMessagesHigh
+        expr: |
+          max(rabbitmq_queue_messages) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RabbitMQ queue is growing"
+          description: "A RabbitMQ queue contains more than 1000 messages."
+
+      # =========================
+      # UNACKNOWLEDGED
+      # =========================
+
+      - alert: RabbitMQUnackedMessagesHigh
+        expr: |
+          max(rabbitmq_queue_messages_unacknowledged) > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RabbitMQ has many unacked messages"
+          description: "More than 500 RabbitMQ messages are waiting for acknowledgement."

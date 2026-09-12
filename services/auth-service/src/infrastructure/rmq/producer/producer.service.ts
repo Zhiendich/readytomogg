@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-
 import {
   CreateUserEvent,
   EVENT_CONSTANTS,
@@ -20,7 +19,6 @@ export class ProducerService {
   ) {}
 
   public async createUser(data: CreateUserEvent) {
-    console.log('DATA', data);
     this.userClient.emit(EVENT_CONSTANTS.createUser, data);
     this.chatClient.emit(EVENT_CONSTANTS.createUser, data);
     this.paymentClient.emit(EVENT_CONSTANTS.createUser, data);
